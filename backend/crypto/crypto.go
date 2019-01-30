@@ -10,6 +10,8 @@ import (
 	"io"
 )
 
+// Encrypt encrypts a slice of bytes using a key.Encrypt
+// This implementation uses AES
 func Encrypt(data, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(hash(key))
 	if err != nil {
@@ -29,6 +31,7 @@ func Encrypt(data, key []byte) ([]byte, error) {
 	return gcm.Seal(nonce, nonce, data, nil), nil
 }
 
+// Decrypt tries to decrypt a given AES encrypted message using a key.
 func Decrypt(data, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(hash(key))
 	if err != nil {
@@ -50,6 +53,8 @@ func Decrypt(data, key []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, data, nil)
 }
 
+// hash converts a given slice of bytes to a fixed length one.
+// This function is called by Encrypt and Decrypt for the key.
 func hash(key []byte) []byte {
 	hasher := md5.New()
 	hasher.Write([]byte(key))

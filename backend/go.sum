@@ -1,13 +1,6 @@
 github.com/go-chi/chi v4.0.1+incompatible h1:RSRC5qmFPtO90t7pTL0DBMNpZFsb/sHF3RXVlDgFisA=
 github.com/go-chi/chi v4.0.1+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
-github.com/upspin/upspin v0.0.0-20181217205605-686971a7c4ba h1:+MCu6AUK4hV92vrR44wL98sfw7uqiqY7FGsdHRudS5c=
-github.com/upspin/upspin v0.0.0-20181217205605-686971a7c4ba/go.mod h1:JZGI/DrzCR5GpqLUhd6KULksjaSRy9mKuUQ7xiw41pM=
-golang.org/x/crypto v0.0.0-20190122013713-64072686203f h1:u1CmMhe3a44hy8VIgpInORnI01UVaUYheqR7x9BxT3c=
-golang.org/x/crypto v0.0.0-20190122013713-64072686203f/go.mod h1:6SG95UA2DQfeDnfUPMdvaQW0Q7yPrPDi9nlGo2tz2b4=
+golang.org/x/net v0.0.0-20190125091013-d26f9f9a57f3 h1:ulvT7fqt0yHWzpJwI57MezWnYDVpCAYBVuYst/L+fAY=
+golang.org/x/net v0.0.0-20190125091013-d26f9f9a57f3/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
-gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
-gopkg.in/yaml.v2 v2.2.2 h1:ZCJp+EgiOT7lHqUV2J862kp8Qj64Jo6az82+3Td9dZw=
-gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
-upspin.io v0.0.0-20181217205605-686971a7c4ba h1:UPE8bF1YPv3BPJTXJLIUVnuBeyx6ExH3Tz5ttW6RYeE=
-upspin.io v0.0.0-20181217205605-686971a7c4ba/go.mod h1:4hdXTXkMPXxzbiw/sultoifpccn98hChAFvrU19V2ug=

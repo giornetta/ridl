@@ -15,6 +15,7 @@ func main() {
 
 	srv := server.New(svc)
 
+	// Launch the server in a goroutine
 	go func() {
 		log.Println("listening on", srv.Addr)
 		if err := srv.ListenAndServe(); err != nil {
@@ -22,6 +23,8 @@ func main() {
 		}
 	}()
 
+	// Create a signal channel to listen to Interrupt signals
+	// in order to correctly shutdown the server
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
 

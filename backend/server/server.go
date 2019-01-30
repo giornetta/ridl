@@ -13,11 +13,13 @@ import (
 	"github.com/go-chi/chi"
 )
 
+// New returns an *http.Server that can correctly handle requests
 func New(svc ridl.Service) *http.Server {
 	h := &ridlHandler{svc}
 
 	mux := chi.NewMux()
 
+	// add the needed middlewares to the router
 	mux.Use(
 		allowCORS,
 		middleware.Logger,
@@ -27,6 +29,7 @@ func New(svc ridl.Service) *http.Server {
 
 	mux.Mount("/ridl", h.routes())
 
+	// tlsConfig contains the best settings to correctly serve over the web
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,
 		CurvePreferences: []tls.CurveID{

@@ -22,6 +22,7 @@ func (h *ridlHandler) routes() *chi.Mux {
 	return mux
 }
 
+// encrypt wraps ridl.Service.Encrypt, decoding the request body and sending it to the service.
 func (h *ridlHandler) encrypt(w http.ResponseWriter, r *http.Request) {
 	var req ridl.EncryptRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -38,6 +39,7 @@ func (h *ridlHandler) encrypt(w http.ResponseWriter, r *http.Request) {
 	respond(w, http.StatusOK, res)
 }
 
+// decrypt wraps ridl.Service.Decrypt, decoding the request body and sending it to the service.
 func (h *ridlHandler) decrypt(w http.ResponseWriter, r *http.Request) {
 	var req ridl.DecryptRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
