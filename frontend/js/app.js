@@ -5,7 +5,8 @@ new Vue({
     question: '',
     answer: '',
     message: '',
-    code: ''
+    code: '',
+    error: false
   },
   watch: {
     created: {
@@ -16,7 +17,6 @@ new Vue({
           this.question = strings[0];
           this.message = strings[1];
 
-          this.code = args[1];
           this.solvePage = true;
         }
       },
@@ -30,7 +30,8 @@ new Vue({
         answer: this.answer,
         message: this.message
       };
-    
+      
+      try {
       const res = await fetch('http://localhost:8080/ridl/encrypt', {
         headers: {
           'Content-Type': 'application/json'
@@ -42,6 +43,10 @@ new Vue({
       const json = await res.json();
 
       this.code = btoa(`${json.riddle}:${json.message}`);
+      this.error = false;
+      } catch(e) {
+        this.error = true;
+      }
     },
     async decryptRiddle() {
       const body = {
@@ -49,17 +54,30 @@ new Vue({
         message: this.message
       };
     
-      const res = await fetch('http://localhost:8080/ridl/decrypt', {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
+      try {
+        const res = await fetch('http://localhost:8080/ridl/decrypt', {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+        
+        if (res.status !== 200) {
+          throw res.status;
+        }
 
-      const json = await res.json();
+        const json = await res.json();
 
-      console.log(json.message);
+        this.code = json.message;
+        this.error = false;
+      } catch(e) {
+        this.error = true;
+      }
+    },
+    copy() {
+      document.getElementById('share-link').select();
+      document.execCommand("copy");
     }
   },
   computed: {

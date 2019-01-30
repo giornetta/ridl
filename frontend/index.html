@@ -8,8 +8,9 @@
     <link rel="stylesheet" href="./css/normalize.css">
     <link rel="stylesheet" href="./css/skeleton.css">
     <link rel="stylesheet" href="./css/style.css">
-    
-    
+
+    <link rel="icon" href="./img/lock.png">
+
     <title>Ridl</title>
 </head>
 <body>
@@ -19,14 +20,17 @@
       <!-- HERO -->
       <div class="row front-page">
         <div>
-          <h3>Ridl</h3>
+          <h3>
+            <img src="./img/lock.png" width="32px">
+            Ridl
+          </h3>
           <p>Encrypt your messages using a riddle.<br>Share with whoever you want.</p>
         </div>
       </div>
       <!-- /HERO -->
       
       <div v-if="solvePage">
-        <h6>{{ question }}</h6>
+        <h5><strong>Question: </strong>{{ question }}</h5>
 
         <form @submit.prevent="decryptRiddle">
           <div>
@@ -36,6 +40,14 @@
     
           <input class="button-primary" type="submit" value="Decrypt!">
         </form>
+
+        <div v-if="error" class="error">
+          An error occurred while decrypting your riddle, please retry.
+        </div>
+        <div v-if="code && !error" class="success">
+          {{ code }}
+        </div>
+        
       </div>
       <div v-else>
         <!-- FORM -->
@@ -56,8 +68,17 @@
           <input class="button-primary" type="submit" value="RidlIt!">
         </form>
         <!-- /FORM -->
-    
-        <a class="share" v-if="code" :href="shareUrl">{{ shareUrl.split("//")[1] }}</div>
+        
+        <div v-if="error" class="error">
+          An error occurred while creating your riddle, please retry.
+        </div>
+        <div v-else>
+            <input v-if="code" id="share-link" :value="shareUrl" readonly>
+            <button id="share" v-if="code" @click="copy">
+              Copy Link
+            </button>
+        </div>
+
       </div>
     
     </div>
