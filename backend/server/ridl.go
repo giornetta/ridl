@@ -16,10 +16,26 @@ type ridlHandler struct {
 func (h *ridlHandler) routes() *chi.Mux {
 	mux := chi.NewMux()
 
+	mux.Get("/riddle/{riddleID}", h.getRiddle)
 	mux.Post("/encrypt", h.encrypt)
 	mux.Post("/decrypt", h.decrypt)
 
 	return mux
+}
+
+// encrypt wraps ridl.Service.GetRiddle, decoding the request body and sending it to the service.
+func (h *ridlHandler) getRiddle(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "riddleID")
+
+	res, err := h.s.GetRiddle(&ridl.GetRequest{
+		RiddleID: id,
+	})
+	if err != nil {
+		respond(w, http.StatusInternalServerError, e(err.Error()))
+		return
+	}
+
+	respond(w, http.StatusOK, res)
 }
 
 // encrypt wraps ridl.Service.Encrypt, decoding the request body and sending it to the service.

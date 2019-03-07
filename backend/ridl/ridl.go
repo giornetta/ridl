@@ -1,34 +1,49 @@
 package ridl
 
 import (
-	"encoding/base64"
+	"fmt"
+	"strings"
+	"time"
 
-	"github.com/giornetta/ridl/crypto"
+	"github.com/giornetta/ridl/repository"
+
+	"github.com/giornetta/ridl/cipher"
 )
 
 // Service defines the methods of the ridl service
 type Service interface {
+	GetRiddle(req *GetRequest) (*GetResponse, error)
 	Encrypt(req *EncryptRequest) (*EncryptResponse, error)
 	Decrypt(req *DecryptRequest) (*DecryptResponse, error)
 }
 
+type GetRequest struct {
+	RiddleID string `json:"riddleID"`
+}
+
+type GetResponse struct {
+	Question string `json:"question"`
+}
+
 // EncryptRequest contains the fields required to encrypt a riddle message
 type EncryptRequest struct {
-	Riddle  string `json:"riddle"`
-	Answer  string `json:"answer"`
-	Message string `json:"message"`
+	Question     string `json:"question"`
+	Answer       string `json:"answer"`
+	Message      string `json:"message"`
+	IgnoreCase   bool   `json:"ignoreCase"`
+	IgnoreSpaces bool   `json:"ignoreSpaces"`
+	Expiry       string `json:"expiry"`
 }
 
 // EncryptResponse is the response of a successful encryption
 type EncryptResponse struct {
-	Riddle  string `json:"riddle"`
-	Message string `json:"message"`
+	RiddleID string `json:"riddleID"`
 }
 
 // DecryptRequest contains the fields needed to decrypt a riddle message
 type DecryptRequest struct {
-	Message string `json:"message"`
-	Answer  string `json:"answer"`
+	RiddleID string `json:"riddleID"`
+	Answer   string `json:"answer"`
 }
 
 // DecryptResponse is the response to a successful decryption
@@ -36,39 +51,79 @@ type DecryptResponse struct {
 	Message string `json:"message"`
 }
 
-type service struct{}
-
-// New returns an implementation of Service
-func New() Service {
-	return &service{}
+type service struct {
+	c    cipher.Cipher
+	repo repository.Repository
 }
 
-func (s *service) Encrypt(req *EncryptRequest) (*EncryptResponse, error) {
-	// Encrypt the message using the Riddle's answer as the key
-	crypted, err := crypto.Encrypt([]byte(req.Message), []byte(req.Answer))
+// NewService returns an implementation of Service
+func NewService(c cipher.Cipher, repo repository.Repository) Service {
+	return &service{
+		c:    c,
+		repo: repo,
+	}
+}
+
+func (s *service) GetRiddle(req *GetRequest) (*GetResponse, error) {
+	r, err := s.repo.Get(req.RiddleID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Encode the result as Base64
-	message := base64.StdEncoding.EncodeToString(crypted)
+	fmt.Println(r.Question)
+	return &GetResponse{
+		Question: r.Question,
+	}, nil
+}
+
+func (s *service) Encrypt(req *EncryptRequest) (*EncryptResponse, error) {
+	if req.IgnoreCase {
+		req.Answer = strings.ToLower(req.Answer)
+	}
+
+	if req.IgnoreSpaces {
+		req.Answer = strings.Replace(req.Answer, " ", "", -1)
+	}
+
+	// Encrypt the message using the Riddle's answer as the key
+	crypted, err := s.c.Encrypt([]byte(req.Message), []byte(req.Answer))
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := s.repo.Put(&repository.Riddle{
+		Question:     req.Question,
+		Crypted:      crypted,
+		IgnoreCase:   req.IgnoreCase,
+		IgnoreSpaces: req.IgnoreSpaces,
+		Expiry:       time.Now().Add(time.Hour * 2),
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	// Send back the response
 	return &EncryptResponse{
-		Riddle:  req.Riddle,
-		Message: message,
+		RiddleID: id,
 	}, nil
 }
 
 func (s *service) Decrypt(req *DecryptRequest) (*DecryptResponse, error) {
-	// Decode the given encrypted message from Base64
-	message, err := base64.StdEncoding.DecodeString(req.Message)
+	riddle, err := s.repo.Get(req.RiddleID)
 	if err != nil {
 		return nil, err
 	}
 
+	if riddle.IgnoreCase {
+		req.Answer = strings.ToLower(req.Answer)
+	}
+
+	if riddle.IgnoreSpaces {
+		req.Answer = strings.Replace(req.Answer, " ", "", -1)
+	}
+
 	// Decrypt the message using the given answer as the key
-	decrypted, err := crypto.Decrypt(message, []byte(req.Answer))
+	decrypted, err := s.c.Decrypt(riddle.Crypted, []byte(req.Answer))
 	if err != nil {
 		return nil, err
 	}

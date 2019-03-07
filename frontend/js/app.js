@@ -5,19 +5,27 @@ new Vue({
     question: '',
     answer: '',
     message: '',
-    code: '',
+    ignoreCase: false,
+    ignoreSpaces: false,
+    id: '',
     error: false
   },
   watch: {
     created: {
-      handler() {
+      async handler() {
         const args = window.location.search.split("=", 2)
         if (args.length > 1) {
-          const strings = atob(args[1]).split(':');
-          this.question = strings[0];
-          this.message = strings[1];
-
-          this.solvePage = true;
+          try {
+            const res = await fetch(`http://localhost:8080/ridl/riddle/${args[1]}`);
+            const json = await res.json();
+            
+            this.question = json.question;
+            this.id = args[1];
+            this.error = false;
+            this.solvePage = true;
+            } catch(e) {
+              this.showError();
+            }
         }
       },
       immediate: true,
@@ -26,9 +34,11 @@ new Vue({
   methods: {
     async createRiddle() {
       const body = {
-        riddle: this.question,
+        question: this.question,
         answer: this.answer,
-        message: this.message
+        message: this.message,
+        ignoreCase: this.ignoreCase,
+        ignoreSpaces: this.ignoreSpaces
       };
       
       try {
@@ -42,16 +52,16 @@ new Vue({
 
       const json = await res.json();
 
-      this.code = btoa(`${json.riddle}:${json.message}`);
+      this.id = json.riddleID;
       this.error = false;
       } catch(e) {
-        this.error = true;
+        this.showError();
       }
     },
     async decryptRiddle() {
       const body = {
+        riddleID: this.id,
         answer: this.answer,
-        message: this.message
       };
     
       try {
@@ -68,21 +78,27 @@ new Vue({
         }
 
         const json = await res.json();
-
-        this.code = json.message;
+        this.message = json.message;
+        console.log(this.message);
         this.error = false;
       } catch(e) {
-        this.error = true;
+        this.showError();
       }
     },
     copy() {
       document.getElementById('share-link').select();
       document.execCommand("copy");
+    },
+    showError() {
+      this.error = true;
+      setTimeout(() => {
+        this.error = false;
+      }, 2000);
     }
   },
   computed: {
     shareUrl() {
-      return `${window.location.href}?ridl=${this.code}`;
+      return `${window.location.href}?ridl=${this.id}`;
     }
   }
 });

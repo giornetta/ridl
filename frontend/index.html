@@ -41,12 +41,15 @@
           <input class="button-primary" type="submit" value="Decrypt!">
         </form>
 
+
+        <transition name="fade">
         <div v-if="error" class="error">
           An error occurred while decrypting your riddle, please retry.
         </div>
-        <div v-if="code && !error" class="success">
-          {{ code }}
+        <div v-if="message && !error" class="success">
+          {{ message }}
         </div>
+      </transition>
         
       </div>
       <div v-else>
@@ -64,20 +67,32 @@
             <label>Your message</label>
             <textarea class="u-full-width" type="text" placeholder="Super secret message!" v-model="message"></textarea>
           </div>
-    
+
+
+          <label class="example-send-yourself-copy">
+            <input type="checkbox" v-model="ignoreCase">
+            <span class="label-body">Ignore Case</span>
+          </label>
+
+          <label class="example-send-yourself-copy">
+            <input type="checkbox" v-model="ignoreSpaces">
+            <span class="label-body">Ignore Spaces</span>
+          </label>
+         
           <input class="button-primary" type="submit" value="RidlIt!">
         </form>
         <!-- /FORM -->
-        
+        <transition name="fade">
         <div v-if="error" class="error">
           An error occurred while creating your riddle, please retry.
         </div>
-        <div v-else>
-            <input v-if="code" id="share-link" :value="shareUrl" readonly>
-            <button id="share" v-if="code" @click="copy">
+        <div v-if="id && !error">
+            <input id="share-link" :value="shareUrl" readonly>
+            <button id="share" @click="copy">
               Copy Link
             </button>
         </div>
+      </transition>
 
       </div>
     

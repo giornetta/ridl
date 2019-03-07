@@ -6,14 +6,32 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/giornetta/ridl/repository"
+
+	"github.com/giornetta/ridl/cipher"
+
+	"github.com/dgraph-io/badger"
+
 	"github.com/giornetta/ridl/ridl"
 	"github.com/giornetta/ridl/server"
 )
 
 func main() {
-	svc := ridl.New()
+	opts := badger.DefaultOptions
+	opts.Dir = "./badger_db"
+	opts.ValueDir = "./badger_db"
+	db, err := badger.Open(opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	repo := repository.New(db)
+
+	svc := ridl.NewService(cipher.NewAES(), repo)
 
 	srv := server.New(svc)
+	defer srv.Shutdown(nil)
 
 	// Launch the server in a goroutine
 	go func() {
@@ -30,5 +48,4 @@ func main() {
 
 	<-sig
 	log.Println("Shutting down server...")
-	srv.Shutdown(nil)
 }

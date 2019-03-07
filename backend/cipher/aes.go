@@ -1,18 +1,22 @@
-package crypto
+package cipher
 
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
 	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"io"
 )
 
+type aesCrypto struct{}
+
+func NewAES() Cipher {
+	return &aesCrypto{}
+}
+
 // Encrypt encrypts a slice of bytes using a key.Encrypt
 // This implementation uses AES
-func Encrypt(data, key []byte) ([]byte, error) {
+func (a *aesCrypto) Encrypt(data, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(hash(key))
 	if err != nil {
 		return nil, err
@@ -32,7 +36,7 @@ func Encrypt(data, key []byte) ([]byte, error) {
 }
 
 // Decrypt tries to decrypt a given AES encrypted message using a key.
-func Decrypt(data, key []byte) ([]byte, error) {
+func (a *aesCrypto) Decrypt(data, key []byte) ([]byte, error) {
 	c, err := aes.NewCipher(hash(key))
 	if err != nil {
 		return nil, err
@@ -51,12 +55,4 @@ func Decrypt(data, key []byte) ([]byte, error) {
 	nonce, data := data[:nonceSize], data[nonceSize:]
 
 	return gcm.Open(nil, nonce, data, nil)
-}
-
-// hash converts a given slice of bytes to a fixed length one.
-// This function is called by Encrypt and Decrypt for the key.
-func hash(key []byte) []byte {
-	hasher := md5.New()
-	hasher.Write([]byte(key))
-	return []byte(hex.EncodeToString(hasher.Sum(nil)))
 }
