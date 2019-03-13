@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 )
 
+// Cipher defines the methods which must be implemented in order to be used by the application
 type Cipher interface {
 	Encrypt(data, key []byte) ([]byte, error)
 	Decrypt(data, key []byte) ([]byte, error)

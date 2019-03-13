@@ -6,13 +6,14 @@ import (
 
 	"github.com/go-chi/chi"
 
-	"github.com/giornetta/ridl/ridl"
+	"github.com/giornetta/ridl"
 )
 
 type ridlHandler struct {
 	s ridl.Service
 }
 
+// routes mounts every method to an HTTP route
 func (h *ridlHandler) routes() *chi.Mux {
 	mux := chi.NewMux()
 

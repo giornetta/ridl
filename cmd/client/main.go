@@ -1,36 +1,26 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/giornetta/ridl/repository"
-
-	"github.com/giornetta/ridl/cipher"
-
-	"github.com/dgraph-io/badger"
-
-	"github.com/giornetta/ridl/ridl"
+	"github.com/amirhosseinab/sfs"
 	"github.com/giornetta/ridl/server"
 )
 
 func main() {
-	opts := badger.DefaultOptions
-	opts.Dir = "./badger_db"
-	opts.ValueDir = "./badger_db"
-	db, err := badger.Open(opts)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
+	// Configuration flags for the application
+	port := flag.String("port", "3000", "port where the application is exposed")
+	flag.Parse()
 
-	repo := repository.New(db)
+	h := sfs.New(http.Dir("static"), indexHandler)
 
-	svc := ridl.NewService(cipher.NewAES(), repo)
-
-	srv := server.New(svc)
+	srv := server.New(h, *port)
+	// Correctly close the server when the program ends
 	defer srv.Shutdown(nil)
 
 	// Launch the server in a goroutine
@@ -48,4 +38,8 @@ func main() {
 
 	<-sig
 	log.Println("Shutting down server...")
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "static/index.html")
 }

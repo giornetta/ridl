@@ -4,22 +4,16 @@ import (
 	"bytes"
 	"encoding/gob"
 	"errors"
-	"time"
+
+	"github.com/giornetta/ridl"
 
 	"github.com/gofrs/uuid"
 
 	"github.com/dgraph-io/badger"
 )
 
-type Riddle struct {
-	Question     string
-	Crypted      []byte
-	IgnoreCase   bool
-	IgnoreSpaces bool
-	Expiry       time.Time
-}
-
-func (r *Riddle) Encode() ([]byte, error) {
+// encode correctly encodes a riddle into a bytes sequence
+func encode(r *ridl.Riddle) ([]byte, error) {
 	var buf bytes.Buffer
 	if err := gob.NewEncoder(&buf).Encode(r); err != nil {
 		return nil, err
@@ -28,12 +22,9 @@ func (r *Riddle) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (r *Riddle) IsExpired() bool {
-	return time.Now().After(r.Expiry)
-}
-
-func DecodeRecord(b []byte) (*Riddle, error) {
-	var r Riddle
+// decode converts a bytes sequence into a Riddle struct
+func decode(b []byte) (*ridl.Riddle, error) {
+	var r ridl.Riddle
 	buf := bytes.NewBuffer(b)
 
 	if err := gob.NewDecoder(buf).Decode(&r); err != nil {
@@ -43,14 +34,8 @@ func DecodeRecord(b []byte) (*Riddle, error) {
 	return &r, nil
 }
 
-type Repository interface {
-	Put(r *Riddle) (string, error)
-	Get(id string) (*Riddle, error)
-	Delete(id string) error
-	DeleteExpired() error
-}
-
-func New(db *badger.DB) Repository {
+// New returns a concrete implementation of the Repository interface
+func NewBadger(db *badger.DB) ridl.Repository {
 	return &badgerRepository{
 		db: db,
 	}
@@ -60,7 +45,7 @@ type badgerRepository struct {
 	db *badger.DB
 }
 
-func (repo *badgerRepository) Put(r *Riddle) (string, error) {
+func (repo *badgerRepository) Put(r *ridl.Riddle) (string, error) {
 	uid, err := uuid.NewV4()
 	if err != nil {
 		return "", err
@@ -68,7 +53,7 @@ func (repo *badgerRepository) Put(r *Riddle) (string, error) {
 
 	id := uid.String()[:5]
 
-	b, err := r.Encode()
+	b, err := encode(r)
 	if err != nil {
 		return "", err
 	}
@@ -82,8 +67,8 @@ func (repo *badgerRepository) Put(r *Riddle) (string, error) {
 	return id, nil
 }
 
-func (repo *badgerRepository) Get(id string) (*Riddle, error) {
-	var r *Riddle
+func (repo *badgerRepository) Get(id string) (*ridl.Riddle, error) {
+	var r *ridl.Riddle
 	if err := repo.db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(id))
 		if err != nil {
@@ -95,7 +80,7 @@ func (repo *badgerRepository) Get(id string) (*Riddle, error) {
 			return err
 		}
 
-		r, err = DecodeRecord(b)
+		r, err = decode(b)
 		if err != nil {
 			return err
 		}
@@ -105,7 +90,10 @@ func (repo *badgerRepository) Get(id string) (*Riddle, error) {
 		return nil, err
 	}
 
+	// If the riddle is expired and it hasn't already been deleted
+	// delete it and return an error.
 	if r.IsExpired() {
+		_ = repo.Delete(id)
 		return nil, errors.New("expired")
 	}
 
@@ -124,22 +112,24 @@ func (repo *badgerRepository) DeleteExpired() error {
 		opts.PrefetchSize = 10
 		it := txn.NewIterator(opts)
 		defer it.Close()
+		// Range through all the values
 		for it.Rewind(); it.Valid(); it.Next() {
 			item := it.Item()
 			k := item.Key()
 
 			b, err := item.Value()
 			if err != nil {
-				return err
+				continue
 			}
 
-			r, err := DecodeRecord(b)
+			r, err := decode(b)
 			if err != nil {
-				return err
+				continue
 			}
 
+			// Delete record if it has expired
 			if r.IsExpired() {
-				txn.Delete(k)
+				_ = txn.Delete(k)
 			}
 		}
 		return nil

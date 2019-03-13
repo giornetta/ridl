@@ -7,6 +7,7 @@ new Vue({
     message: '',
     ignoreCase: false,
     ignoreSpaces: false,
+    expiry: '24h',
     id: '',
     error: false
   },
@@ -38,7 +39,8 @@ new Vue({
         answer: this.answer,
         message: this.message,
         ignoreCase: this.ignoreCase,
-        ignoreSpaces: this.ignoreSpaces
+        ignoreSpaces: this.ignoreSpaces,
+        expiry: this.expiry
       };
       
       try {

@@ -10,6 +10,8 @@ import (
 
 type aesCrypto struct{}
 
+// NewAES returns a concrete implementation of the Cipher interface.
+// This implementation uses AES encryption.
 func NewAES() Cipher {
 	return &aesCrypto{}
 }

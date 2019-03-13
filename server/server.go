@@ -6,20 +6,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/giornetta/ridl/ridl"
+	"github.com/giornetta/ridl"
 
 	"github.com/go-chi/chi/middleware"
 
 	"github.com/go-chi/chi"
 )
 
-// New returns an *http.Server that can correctly handle requests
-func New(svc ridl.Service) *http.Server {
+func Router(svc ridl.Service) *chi.Mux {
 	h := &ridlHandler{svc}
 
+	// Create an HTTP multiplexer
 	mux := chi.NewMux()
 
-	// add the needed middlewares to the router
+	// add the needed middlewares to the multiplexer
 	mux.Use(
 		allowCORS,
 		middleware.Logger,
@@ -29,7 +29,13 @@ func New(svc ridl.Service) *http.Server {
 
 	mux.Mount("/ridl", h.routes())
 
-	// tlsConfig contains the best settings to correctly serve over the web
+	return mux
+}
+
+// New returns an *http.Server that can correctly handle requests
+func New(mux http.Handler, port string) *http.Server {
+	// tlsConfig contains the best settings to correctly serve over the web in a secure way.
+	// TLS certificates should be added in order to use HTTPS.
 	tlsConfig := &tls.Config{
 		PreferServerCipherSuites: true,
 		CurvePreferences: []tls.CurveID{
@@ -48,7 +54,7 @@ func New(svc ridl.Service) *http.Server {
 	}
 
 	s := &http.Server{
-		Addr:         ":8080",
+		Addr:         ":" + port,
 		ReadTimeout:  time.Second * 5,
 		WriteTimeout: time.Second * 5,
 		IdleTimeout:  time.Second * 120,

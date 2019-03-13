@@ -69,19 +69,31 @@
           </div>
 
 
-          <label class="example-send-yourself-copy">
+          <label>
             <input type="checkbox" v-model="ignoreCase">
-            <span class="label-body">Ignore Case</span>
+            Ignore Case
           </label>
 
-          <label class="example-send-yourself-copy">
+          <label>
             <input type="checkbox" v-model="ignoreSpaces">
-            <span class="label-body">Ignore Spaces</span>
+            Ignore Spaces
           </label>
+
+          <label>
+            Expiry
+            <select v-model="expiry">
+              <option value="2h">2 Hours</option>
+              <option value="6h">6 Hours</option>
+              <option value="12h">12 Hours</option>
+              <option value="24h">24 Hours</option>
+            </select>
+          </label>
+          
          
           <input class="button-primary" type="submit" value="RidlIt!">
         </form>
         <!-- /FORM -->
+
         <transition name="fade">
         <div v-if="error" class="error">
           An error occurred while creating your riddle, please retry.
