@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -55,7 +56,7 @@ func main() {
 	// Launch the server in a goroutine
 	go func() {
 		log.Println("listening on", srv.Addr)
-		if err := srv.ListenAndServe(); err != nil {
+		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("could not listen: %v", err)
 		}
 	}()
