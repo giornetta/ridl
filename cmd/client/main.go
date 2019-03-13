@@ -17,6 +17,7 @@ func main() {
 	port := flag.String("port", "3000", "port where the application is exposed")
 	flag.Parse()
 
+	// Set up a FileServer for the ./static folder
 	h := sfs.New(http.Dir("static"), indexHandler)
 
 	srv := server.New(h, *port)
